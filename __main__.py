@@ -1,6 +1,5 @@
 import parser
 import route_finder
-import datetime
 
 
 def preprocess():
@@ -37,14 +36,6 @@ def preprocess():
 
 def main():
     adj_list, station_indexes, station_indexes_rev = preprocess()
-    # for station in adj_list:
-    #     print(f"{station}")
-    #     for tkt in adj_list[station]:
-    #         print(tkt)
-    # min = datetime.timedelta(100000000)
-    # m1 = datetime.timedelta(5000)
-    # print(m1)
-    # return
 
     print("enter best way criteria (1 - cheapest, 2 - fastest)")
     criteria = int(input())
@@ -55,17 +46,17 @@ def main():
     print(f"enter destination station (availible: {station_indexes.keys()})")
     dest = station_indexes[int(input())]
 
-    rf = route_finder.RouteFinder()
+    rf = route_finder.RouteFinder(adj_list)
 
     if criteria == 1:
-        path, cost = rf.find_cheapest_way(start, dest, adj_list)
+        path, cost = rf.find_cheapest_way(start, dest)
 
         for i in range(0, len(path)):
             path[i] = station_indexes_rev[path[i]]
 
         print("path: ", path, " cost: ", cost)
     elif criteria == 2:
-        path, cost = rf.find_fastest_way(start, dest, adj_list)
+        path, cost = rf.find_fastest_way(start, dest)
 
         for i in range(0, len(path)):
             path[i] = station_indexes_rev[path[i]]
