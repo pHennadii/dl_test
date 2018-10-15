@@ -1,45 +1,53 @@
 import datetime
 
-INF = 100000000
-
 
 class RouteFinder:
-    def preprocess(self, start, adj_matrix, fn):
-        used = {}
-        optimal = {}
+    __INF = 100000000
+    __adj_matrix = {}
+    __start = -1
 
-        for station in adj_matrix:
-            used[station] = False
-            optimal[station] = fn(INF)
-        prev = [0] * len(used)
-        tickets = [0] * len(used)
-        optimal[start] = fn(0)
+    __used = {}
+    __optimal = {}
+    __prev = []
+    __tickets = []
 
-        return prev, used, tickets, optimal
+    def __init__(self, adj_matrix: dict):
+        self.__adj_matrix = adj_matrix.copy()
 
-    def cheapest_way(self, start: int, adj_matrix: dict):
-        prev, used, tickets, optimal = self.preprocess(start, adj_matrix, int)
+    def __preprocess(self, start, fn):
+        for station in self.__adj_matrix:
+            self.__used[station] = False
+            self.__optimal[station] = fn(self.__INF)
+        self.__optimal[start] = fn(0)
 
-        for i in range(0, len(adj_matrix)):
+        self.__prev = [0]*len(self.__used)
+        self.__tickets = [0]*len(self.__used)
+
+    def __cheapest_way(self, start: int):
+        self.__preprocess(start, int)
+
+        for i in range(0, len(self.__adj_matrix)):
             v = -1
-            for j in range(0, len(adj_matrix)):
-                if not used[j] and (v == -1 or optimal[j] < optimal[v]):
+
+            for j in range(0, len(self.__adj_matrix)):
+                if not self.__used[j] and (v == -1 or self.__optimal[j] < self.__optimal[v]):
                     v = j
-            if optimal[v] == INF:
+
+            if self.__optimal[v] == self.__INF:
                 break
-            used[v] = True
-            for j in range(0, len(adj_matrix[v])):
-                to = adj_matrix[v][j][1]
-                cost = adj_matrix[v][j][2]
+
+            self.__used[v] = True
+            for j in range(0, len(self.__adj_matrix[v])):
+                to = self.__adj_matrix[v][j][1]
+                cost = self.__adj_matrix[v][j][2]
                 # print(to, cost)
-                if optimal[v] + cost < optimal[to]:
-                    optimal[to] = optimal[v] + cost
-                    tickets[to] = adj_matrix[v][j][0]
-                    prev[to] = v
+                if self.__optimal[v] + cost < self.__optimal[to]:
+                    self.__optimal[to] = self.__optimal[v] + cost
+                    self.__tickets[to] = self.__adj_matrix[v][j][0]
+                    self.__prev[to] = v
 
-        return optimal, prev, tickets
-
-    def timedelta(self, time1, time2: datetime.time):
+    @staticmethod
+    def __timedelta(time1, time2: datetime.time):
         seconds1 = int(time1.second)
         seconds2 = int(time2.second)
         minutes1 = int(time1.minute)
@@ -55,52 +63,63 @@ class RouteFinder:
 
         return delta
 
-    def fastest_way(self, start, adj_matrix):
-        prev, used, tickets, optimal = self.preprocess(start, adj_matrix, datetime.timedelta)
+    def __fastest_way(self, start):
+        self.__preprocess(start, datetime.timedelta)
 
-        for i in range(0, len(adj_matrix)):
+        for i in range(0, len(self.__adj_matrix)):
             v = -1
-            for j in range(0, len(adj_matrix)):
-                if not used[j] and (v == -1 or optimal[j] < optimal[v]):
+
+            for j in range(0, len(self.__adj_matrix)):
+                if not self.__used[j] and (v == -1 or self.__optimal[j] < self.__optimal[v]):
                     v = j
 
-            if optimal[v] == datetime.timedelta(INF):
+            if self.__optimal[v] == datetime.timedelta(self.__INF):
                 break
-            used[v] = True
-            for j in range(0, len(adj_matrix[v])):
-                to = adj_matrix[v][j][1]
-                timediff = self.timedelta(adj_matrix[v][j][4], adj_matrix[v][j][3])
+
+            self.__used[v] = True
+
+            for j in range(0, len(self.__adj_matrix[v])):
+                to = self.__adj_matrix[v][j][1]
+                timediff = self.__timedelta(self.__adj_matrix[v][j][4], self.__adj_matrix[v][j][3])
                 # print(to, timediff)
-                if optimal[v] + datetime.timedelta(seconds=timediff) < optimal[to]:
-                    optimal[to] = optimal[v] + datetime.timedelta(seconds=timediff)
-                    tickets[to] = adj_matrix[v][j][0]
-                    prev[to] = v
 
-        return optimal, prev, tickets
+                if self.__optimal[v] + datetime.timedelta(seconds=timediff) \
+                        < self.__optimal[to]:
 
-    def find_fastest_way(self, start, dest, adj_matrix: dict):
-        optimal, prev, tickets = self.fastest_way(start, adj_matrix)
+                    self.__optimal[to] = self.__optimal[v] + \
+                                         datetime.timedelta(seconds=timediff)
+                    self.__tickets[to] = self.__adj_matrix[v][j][0]
+                    self.__prev[to] = v
+
+    def find_fastest_way(self, start, dest: int):
+        if start != self.__start:
+            self.__start = start
+            self.__fastest_way(self.__start)
+
         path = []
         time = datetime.timedelta(0)
 
         while dest != start:
             path.append(dest)
-            time += optimal[dest]
-            dest = prev[dest]
+            time += self.__optimal[dest]
+            dest = self.__prev[dest]
 
         path.append(start)
         path.reverse()
         return path, time
 
-    def find_cheapest_way(self, start, dest: int, adj_matrix: dict):
-        optimal, prev, tickets = self.cheapest_way(start, adj_matrix)
+    def find_cheapest_way(self, start, dest: int):
+        if start != self.__start:
+            self.__start = start
+            self.__cheapest_way(self.__start)
+
         path = []
         cost = 0.0
 
         while dest != start:
             path.append(dest)
-            cost += optimal[dest]
-            dest = prev[dest]
+            cost += self.__optimal[dest]
+            dest = self.__prev[dest]
 
         path.append(start)
         path.reverse()
