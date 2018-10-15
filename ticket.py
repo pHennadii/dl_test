@@ -8,8 +8,6 @@ class Ticket:
     price = 0.0
     dep_time = datetime.time(0, 0)
     arr_time = datetime.time(0, 0)
-    dep_time_str = ""
-    arr_time_str = ""
 
     @staticmethod
     def default():
