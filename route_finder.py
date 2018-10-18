@@ -15,9 +15,11 @@ class RouteFinder:
         self.__adj_matrix = adj_matrix.copy()
 
     def __preprocess(self, start, fn):
-        for station in self.__adj_matrix:
-            self.__used[station] = False
-            self.__optimal[station] = fn(self.__INF)
+        self.__used = \
+            dict(zip(list(self.__adj_matrix.keys()), [False]*len(self.__adj_matrix)))
+        self.__optimal = \
+            dict(zip(list(self.__adj_matrix.keys()), [fn(self.__INF)]*len(self.__adj_matrix)))
+
         self.__optimal[start] = fn(0)
 
         self.__prev = [0]*len(self.__used)
@@ -81,7 +83,6 @@ class RouteFinder:
             for j in range(0, len(self.__adj_matrix[v])):
                 to = self.__adj_matrix[v][j][1]
                 timediff = self.__timedelta(self.__adj_matrix[v][j][4], self.__adj_matrix[v][j][3])
-                # print(to, timediff)
 
                 if self.__optimal[v] + datetime.timedelta(seconds=timediff) \
                         < self.__optimal[to]:

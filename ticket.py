@@ -13,16 +13,6 @@ class Ticket:
     def default():
         return Ticket(0, 0, 0, 0, 0, 0)
 
-    def duration(self):
-        FMT = "%H:%M:%S"
-        t1 = datetime.datetime.strptime(self.dep_time_str, FMT)
-        t2 = datetime.datetime.strptime(self.arr_time_str, FMT)
-        diff = t2-t1
-        seconds = int(diff.seconds)
-        if seconds < 0:
-            seconds += 86400
-        return seconds
-
     def __init__(self, t_id, dep_id, arr_id, pr, dep_t, arr_t):
         self.train_id = int(t_id)
         self.dep_station_id = int(dep_id)

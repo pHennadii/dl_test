@@ -4,7 +4,7 @@ import route_finder
 
 def preprocess():
     tickets = parser.Parser.parse_data('data.xml')
-    tickets.sort(key=lambda t: (t.dep_station_id, t.arr_station_id, t.dep_time, t.duration()))
+    tickets.sort(key=lambda t: (t.dep_station_id, t.arr_station_id, t.dep_time))
     station_indexes = {}
     ind = 0
     for t in tickets:
@@ -15,9 +15,12 @@ def preprocess():
             station_indexes[t.arr_station_id] = ind
             ind += 1
 
-    station_indexes_rev = {}
-    for k in station_indexes:
-        station_indexes_rev[station_indexes[k]] = k
+    station_indexes_rev = dict(
+        zip(
+            list(station_indexes.values()),
+            list(station_indexes.keys())
+        )
+    )
 
     adj_matrix = {}
     for t in tickets:
@@ -50,17 +53,11 @@ def main():
 
     if criteria == 1:
         path, cost = rf.find_cheapest_way(start, dest)
-
-        for i in range(0, len(path)):
-            path[i] = station_indexes_rev[path[i]]
-
+        path = [station_indexes_rev[st] for st in path]
         print("path: ", path, " cost: ", cost)
     elif criteria == 2:
         path, cost = rf.find_fastest_way(start, dest)
-
-        for i in range(0, len(path)):
-            path[i] = station_indexes_rev[path[i]]
-
+        path = [station_indexes_rev[st] for st in path]
         print("path: ", path, " time: ", cost)
 
 
